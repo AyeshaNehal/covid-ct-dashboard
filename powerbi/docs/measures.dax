@@ -1,0 +1,174 @@
+// ==============================================================================
+// COVID-CT Analytics Dashboard - DAX Measures & Data Model Definitions
+// Project: covid-ct-dashboard
+// Disclaimer: Educational/Portfolio Project Only - NOT A MEDICAL DEVICE
+// ==============================================================================
+
+// ------------------------------------------------------------------------------
+// 1. VOLUME & PREDICTION COUNTS
+// ------------------------------------------------------------------------------
+
+// Total number of evaluated image slice predictions
+Total Images = 
+COUNTROWS('predictions')
+
+// Count of correct predictions (where correct = 1)
+Correct Count = 
+CALCULATE(
+    COUNTROWS('predictions'),
+    'predictions'[correct] = 1
+)
+
+// Count of incorrect predictions (where correct = 0)
+Error Count = 
+CALCULATE(
+    COUNTROWS('predictions'),
+    'predictions'[correct] = 0
+)
+
+// ------------------------------------------------------------------------------
+// 2. ACCURACY & ERROR RATES
+// ------------------------------------------------------------------------------
+
+// Overall Classification Accuracy
+Accuracy = 
+DIVIDE([Correct Count], [Total Images], 0)
+
+// Overall Error Rate (1 - Accuracy)
+Error Rate = 
+DIVIDE([Error Count], [Total Images], 0)
+
+// ------------------------------------------------------------------------------
+// 3. CONFIDENCE METRICS
+// ------------------------------------------------------------------------------
+
+// Average prediction confidence across all evaluated slices
+Avg Confidence = 
+AVERAGE('predictions'[conf])
+
+// Average prediction confidence specifically on misclassified slices
+Avg Confidence (Wrong) = 
+CALCULATE(
+    AVERAGE('predictions'[conf]),
+    'predictions'[correct] = 0
+)
+
+// Average prediction confidence on correct predictions
+Avg Confidence (Correct) = 
+CALCULATE(
+    AVERAGE('predictions'[conf]),
+    'predictions'[correct] = 1
+)
+
+// Critical metric: False certainty / dangerous errors (Confidence > 90% but incorrect)
+High-Confidence Errors = 
+CALCULATE(
+    COUNTROWS('predictions'),
+    'predictions'[correct] = 0,
+    'predictions'[conf] >= 0.90
+)
+
+// Ratio of high-confidence errors over total errors
+High-Confidence Error Pct = 
+DIVIDE([High-Confidence Errors], [Error Count], 0)
+
+// ------------------------------------------------------------------------------
+// 4. PER-CLASS PRECISION, RECALL, F1 (DYNAMIC VIA SELECTEDVALUE)
+// ------------------------------------------------------------------------------
+
+// True Positives for the currently selected class
+Class TP = 
+VAR SelClass = SELECTEDVALUE('predictions'[true_label], "pCT")
+RETURN
+CALCULATE(
+    COUNTROWS('predictions'),
+    'predictions'[true_label] = SelClass,
+    'predictions'[pred_label] = SelClass
+)
+
+// False Positives for the currently selected class (predicted as SelClass but true is different)
+Class FP = 
+VAR SelClass = SELECTEDVALUE('predictions'[true_label], "pCT")
+RETURN
+CALCULATE(
+    COUNTROWS('predictions'),
+    'predictions'[pred_label] = SelClass,
+    'predictions'[true_label] <> SelClass
+)
+
+// False Negatives for the currently selected class (true is SelClass but predicted as different)
+Class FN = 
+VAR SelClass = SELECTEDVALUE('predictions'[true_label], "pCT")
+RETURN
+CALCULATE(
+    COUNTROWS('predictions'),
+    'predictions'[true_label] = SelClass,
+    'predictions'[pred_label] <> SelClass
+)
+
+// Dynamic Precision for the selected class
+Class Precision = 
+DIVIDE([Class TP], [Class TP] + [Class FP], 0)
+
+// Dynamic Recall / Sensitivity for the selected class
+Class Recall = 
+DIVIDE([Class TP], [Class TP] + [Class FN], 0)
+
+// Dynamic F1-Score for the selected class
+Class F1 = 
+VAR P = [Class Precision]
+VAR R = [Class Recall]
+RETURN
+IF(P + R > 0, 2 * DIVIDE(P * R, P + R, 0), 0)
+
+// ------------------------------------------------------------------------------
+// 5. BENCHMARK & COMPARISON MEASURES
+// ------------------------------------------------------------------------------
+
+// Benchmark accuracy across all models on the test split
+Best Model Accuracy = 
+MAXX(
+    ALLSELECTED('predictions'[model]),
+    CALCULATE([Accuracy], 'predictions'[split] = "test")
+)
+
+// Accuracy difference compared to the best performing model
+Accuracy Delta vs Best = 
+[Accuracy] - [Best Model Accuracy]
+
+// ------------------------------------------------------------------------------
+// 6. CALCULATED COLUMNS (Add to 'predictions' table)
+// ------------------------------------------------------------------------------
+
+// Confidence Bins for histogram/distribution visuals:
+// Confidence Bin = 
+// SWITCH(
+//     TRUE(),
+//     'predictions'[conf] < 0.50, "<50%",
+//     'predictions'[conf] < 0.60, "50-60%",
+//     'predictions'[conf] < 0.70, "60-70%",
+//     'predictions'[conf] < 0.80, "70-80%",
+//     'predictions'[conf] < 0.90, "80-90%",
+//     "90-100%"
+// )
+
+// Outcome Category:
+// Outcome Category = 
+// IF('predictions'[correct] = 1, "Correct Prediction", "Misclassified Slice")
+
+// ------------------------------------------------------------------------------
+// 7. CONFIDENCE BIN DIMENSION TABLE (DAX Calculated Table)
+// ------------------------------------------------------------------------------
+// ConfidenceBins = 
+// DATATABLE(
+//     "Bin", STRING,
+//     "SortOrder", INTEGER,
+//     {
+//         {"<50%", 1},
+//         {"50-60%", 2},
+//         {"60-70%", 3},
+//         {"70-80%", 4},
+//         {"80-90%", 5},
+//         {"90-100%", 6}
+//     }
+// )

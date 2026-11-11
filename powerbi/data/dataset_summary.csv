@@ -1,0 +1,5 @@
+class,total_slices,unique_groups,mean_width,mean_height,mean_brightness,corrupt_images,exact_duplicates
+nCT,9979,5540,589.3,589.3,0.4666,0,0
+pCT,4001,1917,661.5,661.5,0.4965,0,0
+NiCT,5705,3729,616.0,616.0,0.5182,0,55
+Total,19685,11186,611.7,611.7,0.4876,0,55

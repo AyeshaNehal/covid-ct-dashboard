@@ -1,0 +1,4 @@
+model,split,accuracy,macro_precision,macro_recall,macro_f1,params,train_time_min
+resnet18,train,0.9921,0.9898,0.9927,0.9912,11178051,12.87
+resnet18,val,0.9739,0.9681,0.9778,0.9727,11178051,12.87
+resnet18,test,0.9827,0.9775,0.984,0.9806,11178051,12.87
