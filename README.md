@@ -1,10 +1,13 @@
 # 🫁 COVID-CT Dashboard & Deep Learning Classifier
 
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://covid-ct-dashboard.streamlit.app/)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-covid--ct--dashboard.streamlit.app-14B8A6?style=flat&logo=streamlit)](https://covid-ct-dashboard.streamlit.app/)
 [![Python 3.11](https://img.shields.io/badge/Python-3.11.9-blue.svg)](https://www.python.org/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.15.0+cpu-ee4c2c.svg)](https://pytorch.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Streamlit](https://img.shields.io/badge/Streamlit-1.67.0-FF4B4B.svg)](https://streamlit.io/)
 [![Tests Passing](https://img.shields.io/badge/pytest-14%20passed-success.svg)](tests/)
+
+> 🚀 **Live Interactive Web App:** Explore the live Streamlit dashboard deployed at [**https://covid-ct-dashboard.streamlit.app/**](https://covid-ct-dashboard.streamlit.app/)
 
 An end-to-end deep learning classification and explainability system for multi-class chest computed tomography (CT) cross-sections (normal `nCT`, COVID-19 positive `pCT`, non-informative `NiCT`), featuring proxy sequence grouped validation, Grad-CAM anatomical localization, dual analytics dashboards (Power BI package & interactive Streamlit app), and thorough error analysis.
 
@@ -71,7 +74,8 @@ Evaluated on the full held-out test partition (**3,000 slices**) without subsamp
 
 ## 💻 Streamlit Companion Dashboard
 
-Launch the interactive dark-themed surface:
+* **Live Deployed App:** [**https://covid-ct-dashboard.streamlit.app/**](https://covid-ct-dashboard.streamlit.app/)
+* **Local Execution:**
 ```bash
 make dashboard
 # or: streamlit run app/main.py
